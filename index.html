@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>小姐取金游戏</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@500;600;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    height:100%;
+    height:100dvh;
+    background:#0a0612;
+    color:#f3e8ff;
+    font-family:"Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
+    -webkit-tap-highlight-color:transparent;
+  }
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+
+  /* ========== 开场全屏视频 ========== */
+  .intro{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    background:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+  .intro.hide{
+    display:none;
+  }
+  .intro video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    pointer-events:none;
+  }
+  .intro .tap-hint{
+    position:absolute;
+    bottom:max(28px, env(safe-area-inset-bottom));
+    left:50%;
+    transform:translateX(-50%);
+    font-family:"ZCOOL XiaoWei",serif;
+    font-size:clamp(.9rem,2.8vw,1.05rem);
+    color:rgba(255,240,255,.9);
+    text-shadow:0 0 12px rgba(249,168,212,.8), 0 2px 6px rgba(0,0,0,.7);
+    letter-spacing:2px;
+    animation:pulseHint 1.6s ease-in-out infinite;
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  @keyframes pulseHint{
+    0%,100%{opacity:.7; transform:translateX(-50%) scale(1)}
+    50%{opacity:1; transform:translateX(-50%) scale(1.05)}
+  }
+
+  .atm{
+    width:100%;
+    max-width:420px;
+    height:100%;
+    height:100dvh;
+    max-height:900px;
+    background:#1a1028 url(main-frame.png) center/cover no-repeat;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    position:relative;
+    box-shadow:0 0 40px rgba(0,0,0,.6);
+  }
+
+  /* 顶部状态栏
+     top-bar.png 顶部有大量透明区，实际内容偏下
+     数字必须落在「积分:」「存金:」后面的空槽里 */
+  .atm-top{
+    flex-shrink:0;
+    height:clamp(58px, 9.5vh, 74px);
+    background:url(top-bar.png) center/100% 100% no-repeat;
+    position:relative;
+    z-index:5;
+  }
+  .atm-top .brand{display:none}
+  .atm-top .bal{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  .atm-top .bal .pts-num,
+  .atm-top .bal .paid-num{
+    position:absolute;
+    /* 空槽垂直位置约在 bar 的 62%~68%（因图片顶部透明） */
+    top:64%;
+    transform:translate(-50%,-50%);
+    font-family:"ZCOOL XiaoWei","Noto Serif SC",serif;
+    font-size:clamp(.8rem, 2.5vw, .98rem);
+    font-weight:400;
+    color:#fff5fb;
+    text-shadow:
+      0 0 6px rgba(255,182,255,.95),
+      0 0 14px rgba(232,121,249,.75),
+      0 1px 2px rgba(0,0,0,.7);
+    min-width:2.2em;
+    text-align:center;
+    letter-spacing:.5px;
+    line-height:1;
+  }
+  /* 根据截图：积分槽中心约 55%，存金槽中心约 77% */
+  .atm-top .bal .pts-num{left:55%;}
+  .atm-top .bal .paid-num{left:77%;}
+
+  /* 主内容区域 */
+  .screen{
+    flex:1;
+    min-height:0;
+    margin:clamp(4px,1.2vw,8px) clamp(10px,3.2vw,16px) clamp(2px,0.8vw,4px);
+    background:url(content-frame.png) center/100% 100% no-repeat;
+    padding:clamp(18px,3.5vw,26px) clamp(16px,4vw,22px) clamp(12px,2.5vw,18px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    position:relative;
+    z-index:2;
+  }
+  .screen h2{
+    text-align:center;
+    font-family:"Ma Shan Zheng","ZCOOL XiaoWei",serif;
+    font-size:clamp(1.15rem,3.4vw,1.35rem);
+    color:#fce7f3;
+    letter-spacing:3px;
+    margin-bottom:clamp(10px,2.2vw,16px);
+    font-weight:400;
+    text-shadow:
+      0 0 12px rgba(251,207,232,.8),
+      0 0 24px rgba(244,114,182,.45),
+      0 2px 4px rgba(0,0,0,.5);
+  }
+  .screen .txt{
+    font-size:clamp(.82rem,2.4vw,.92rem);
+    line-height:1.75;
+    color:#f5e6ff;
+    white-space:pre-wrap;
+    text-shadow:0 1px 2px rgba(0,0,0,.35);
+  }
+  .screen .txt em{
+    color:#fda4d4;
+    font-style:normal;
+    font-weight:600;
+    text-shadow:0 0 8px rgba(249,168,212,.5);
+  }
+  .screen .txt strong{
+    color:#fbcfe8;
+    font-weight:700;
+  }
+
+  /* 对话框 - dialog-box 顶部有「小姐」装饰条，文字需下移避开 */
+  .clerk{
+    flex-shrink:0;
+    margin:0 clamp(8px,2.8vw,14px) clamp(4px,1.2vw,8px);
+    min-height:clamp(86px,14vh,110px);
+    background:url(dialog-box.png) center/100% 100% no-repeat;
+    /* 加大顶部内边距，让文字落在内容区而不是被装饰条遮挡 */
+    padding:clamp(34px,5.5vh,46px) clamp(18px,4vw,24px) clamp(14px,2.4vh,18px) clamp(18px,4vw,24px);
+    font-family:"Noto Serif SC","PingFang SC",serif;
+    font-size:clamp(.78rem,2.3vw,.88rem);
+    line-height:1.6;
+    color:#2a1548;
+    white-space:pre-wrap;
+    position:relative;
+    z-index:3;
+    font-weight:500;
+  }
+
+  /* 按钮区 */
+  .pad{
+    flex-shrink:0;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:clamp(8px,2vw,12px);
+    padding:0 clamp(10px,3.2vw,16px) clamp(12px,2.8vh,20px);
+    padding-bottom:max(clamp(12px,2.8vh,20px), env(safe-area-inset-bottom));
+    position:relative;
+    z-index:4;
+  }
+  .pad button{
+    height:clamp(46px,7.6vh,54px);
+    border:none;
+    background-color:transparent;
+    background-image:url(btn-normal.png);
+    background-size:100% 100%;
+    background-repeat:no-repeat;
+    background-position:center;
+    color:#fff8ff;
+    font-family:"ZCOOL XiaoWei","Noto Serif SC",serif;
+    font-size:clamp(.84rem,2.5vw,.95rem);
+    font-weight:400;
+    cursor:pointer;
+    min-height:44px;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    text-shadow:
+      0 1px 3px rgba(0,0,0,.55),
+      0 0 10px rgba(255,200,255,.35);
+    letter-spacing:1px;
+    -webkit-appearance:none;
+    appearance:none;
+    position:relative;
+    transition:
+      transform .1s cubic-bezier(.2,.8,.2,1),
+      filter .12s ease,
+      box-shadow .12s ease;
+    box-shadow:0 5px 0 rgba(0,0,0,.28), 0 8px 16px rgba(91,33,182,.4);
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .pad button:active{
+    transform:translateY(4px) scale(.97);
+    filter:brightness(1.1);
+    box-shadow:0 1px 0 rgba(0,0,0,.22), 0 3px 8px rgba(91,33,182,.3);
+  }
+  .pad button:focus-visible{
+    outline:2px solid #f9a8d4;
+    outline-offset:3px;
+  }
+
+  .pad button.main{
+    grid-column:1/-1;
+    background-image:url(btn-normal.png);
+    height:clamp(50px,8.2vh,58px);
+    font-size:clamp(.92rem,2.7vw,1.05rem);
+    letter-spacing:2px;
+  }
+  .pad button.pink{
+    background-image:url(btn-pink.png);
+    box-shadow:0 5px 0 rgba(0,0,0,.28), 0 8px 16px rgba(190,24,93,.45);
+  }
+  .pad button.pink:active{
+    box-shadow:0 1px 0 rgba(0,0,0,.22), 0 3px 8px rgba(190,24,93,.35);
+  }
+  .pad button.gold{
+    background-image:url(btn-gold.png);
+    color:#fffef5;
+    text-shadow:0 1px 3px rgba(80,40,0,.6), 0 0 12px rgba(251,191,36,.5);
+    box-shadow:0 5px 0 rgba(0,0,0,.28), 0 8px 16px rgba(180,83,9,.5);
+  }
+  .pad button.gold:active{
+    box-shadow:0 1px 0 rgba(0,0,0,.22), 0 3px 8px rgba(180,83,9,.4);
+  }
+  .pad button.dim{
+    background-image:url(btn-disabled.png);
+    opacity:.95;
+    font-size:clamp(.76rem,2.2vw,.86rem);
+    color:#e9d5ff;
+    text-shadow:0 1px 2px rgba(0,0,0,.4);
+    box-shadow:0 3px 0 rgba(0,0,0,.22), 0 5px 10px rgba(0,0,0,.28);
+    cursor:default;
+  }
+  .pad button.dim:active{
+    transform:translateY(2px) scale(.98);
+    filter:brightness(1.06);
+    box-shadow:0 1px 0 rgba(0,0,0,.18), 0 2px 5px rgba(0,0,0,.22);
+  }
+  .pad button.full{grid-column:1/-1}
+
+  input{
+    width:100%;
+    padding:clamp(11px,2.6vw,14px) clamp(12px,3vw,15px);
+    margin:clamp(6px,1.6vw,9px) 0;
+    border:1.5px solid #d8b4fe;
+    border-radius:12px;
+    background:rgba(30,15,55,.85);
+    color:#fce7f3;
+    font-family:"Noto Serif SC",serif;
+    font-size:clamp(.86rem,2.5vw,.95rem);
+    outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  input:focus{
+    border-color:#f9a8d4;
+    box-shadow:0 0 0 3px rgba(249,168,212,.3);
+  }
+  input::placeholder{color:#c4b5fd}
+
+  .wins{
+    display:flex;
+    gap:clamp(6px,1.8vw,10px);
+    justify-content:center;
+    margin:clamp(8px,2vw,12px) 0;
+    flex-wrap:wrap;
+  }
+  .wins span{
+    font-family:"ZCOOL XiaoWei",serif;
+    font-size:clamp(.72rem,2.1vw,.82rem);
+    padding:clamp(4px,1.1vw,6px) clamp(12px,3vw,16px);
+    border-radius:20px;
+    background:linear-gradient(180deg,#5b21b6,#3b0764);
+    color:#e9d5ff;
+    border:1.5px solid #a78bfa;
+    box-shadow:0 2px 8px rgba(91,33,182,.5), inset 0 1px 0 rgba(255,255,255,.12);
+    letter-spacing:1px;
+    transition:all .25s ease;
+  }
+  .wins span.on{
+    color:#fff;
+    border-color:#fda4d4;
+    background:linear-gradient(180deg,#db2777,#9d174d);
+    box-shadow:0 0 14px rgba(244,114,182,.55), 0 2px 6px rgba(157,23,77,.5);
+    text-shadow:0 0 8px rgba(255,200,230,.6);
+  }
+
+  .mask{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(8,4,18,.9);
+    z-index:50;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    animation:fadeIn .25s ease;
+  }
+  .mask.show{display:flex}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .box{
+    background:linear-gradient(160deg,#3b1f5e 0%,#1a0f2e 100%);
+    border:2px solid #e9d5ff;
+    border-radius:18px;
+    padding:clamp(18px,4.5vw,24px) clamp(14px,3.5vw,20px);
+    max-width:340px;
+    width:100%;
+    text-align:center;
+    box-shadow:0 0 0 1px #f9a8d4,0 16px 48px rgba(91,33,182,.6);
+    position:relative;
+    animation:popIn .3s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+  .box h3{
+    font-family:"Ma Shan Zheng","ZCOOL XiaoWei",serif;
+    color:#fce7f3;
+    font-size:clamp(1.05rem,3vw,1.2rem);
+    margin-bottom:6px;
+    letter-spacing:2px;
+    text-shadow:0 0 12px rgba(251,207,232,.6);
+  }
+  .box .amt{
+    font-family:"ZCOOL XiaoWei",serif;
+    color:#fda4d4;
+    font-size:clamp(1.4rem,4.5vw,1.65rem);
+    font-weight:400;
+    margin:8px 0;
+    text-shadow:0 0 16px rgba(249,168,212,.65);
+  }
+  .box .tip{
+    color:#e9d5ff;
+    font-size:clamp(.78rem,2.3vw,.88rem);
+    margin-bottom:14px;
+    line-height:1.6;
+  }
+  .qrs{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+  .qrs p{font-size:clamp(.68rem,2vw,.76rem);color:#d8b4fe;margin-bottom:4px}
+  .qrs img{
+    width:clamp(108px,30vw,126px);
+    height:clamp(108px,30vw,126px);
+    object-fit:contain;
+    background:#fff;
+    border-radius:12px;
+    border:1.5px solid #e9d5ff;
+  }
+  .box .ok{
+    width:100%;
+    padding:clamp(12px,3vw,15px);
+    border:none;
+    border-radius:14px;
+    background:url(btn-normal.png) center/100% 100% no-repeat;
+    color:#fff8ff;
+    font-family:"ZCOOL XiaoWei",serif;
+    font-size:clamp(.9rem,2.6vw,1rem);
+    letter-spacing:1px;
+    cursor:pointer;
+    text-shadow:0 1px 3px rgba(0,0,0,.5);
+    box-shadow:0 5px 0 rgba(0,0,0,.28), 0 8px 16px rgba(91,33,182,.4);
+    transition:transform .1s cubic-bezier(.2,.8,.2,1), box-shadow .12s ease, filter .12s ease;
+  }
+  .box .ok:active{
+    transform:translateY(4px) scale(.97);
+    filter:brightness(1.1);
+    box-shadow:0 1px 0 rgba(0,0,0,.22), 0 3px 8px rgba(91,33,182,.3);
+  }
+
+  .timer{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:radial-gradient(ellipse at center,#2a1a3d 0%,#0a0612 70%);
+    z-index:40;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    padding-bottom:max(18px, env(safe-area-inset-bottom));
+    animation:fadeIn .3s ease;
+  }
+  .timer.show{display:flex}
+  .timer .lab{
+    font-family:"Ma Shan Zheng","ZCOOL XiaoWei",serif;
+    color:#fce7f3;
+    letter-spacing:4px;
+    margin-bottom:10px;
+    font-size:clamp(1.2rem,3.6vw,1.4rem);
+    text-shadow:0 0 16px rgba(251,207,232,.7);
+  }
+  .timer .num{
+    font-family:"ZCOOL XiaoWei",serif;
+    font-size:clamp(3.6rem,14vw,4.5rem);
+    color:#fda4d4;
+    font-weight:400;
+    font-variant-numeric:tabular-nums;
+    margin:10px 0;
+    text-shadow:0 0 28px rgba(249,168,212,.7);
+  }
+  .timer .hint{
+    margin-top:14px;
+    text-align:center;
+    color:#e9d5ff;
+    font-size:clamp(.88rem,2.6vw,1rem);
+    white-space:pre-wrap;
+    line-height:1.75;
+    max-width:300px;
+  }
+  .timer .gif-wrap{
+    width:min(280px,80vw);
+    max-height:36vh;
+    margin:12px 0;
+    border-radius:16px;
+    overflow:hidden;
+    border:2px solid #e9d5ff;
+    background:#160f24;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 0 28px rgba(124,58,237,.4);
+  }
+  .timer .gif-wrap img{width:100%;height:100%;object-fit:contain;display:block}
+
+  .svc-list{margin:8px 0}
+  .svc-list div{
+    padding:clamp(6px,1.6vw,9px) 0;
+    border-bottom:1px dashed #7c3aed;
+    font-size:clamp(.82rem,2.4vw,.92rem);
+    color:#f5e6ff;
+  }
+  .svc-list .cost{
+    color:#fda4d4;
+    font-weight:600;
+    text-shadow:0 0 6px rgba(249,168,212,.4);
+  }
+
+  .agree-box{
+    background:rgba(45,20,80,.65);
+    border:1.5px solid #a78bfa;
+    border-radius:14px;
+    padding:14px 16px;
+    margin:12px 0;
+    font-size:clamp(.76rem,2.2vw,.86rem);
+    line-height:1.7;
+    color:#f5e6ff;
+    max-height:42vh;
+    overflow-y:auto;
+  }
+  .agree-box p{margin-bottom:9px}
+  .agree-box p:last-child{margin-bottom:0}
+  .agree-box strong{color:#fda4d4}
+
+  @media (max-height:640px){
+    .atm-top{height:52px}
+    .atm-top .bal .pts-num,
+    .atm-top .bal .paid-num{font-size:.76rem; top:66%}
+    .clerk{min-height:76px; padding-top:30px}
+    .pad{gap:6px;padding-bottom:10px}
+    .pad button{height:42px;font-size:.78rem}
+    .pad button.main{height:46px}
+    .screen{padding:12px 14px}
+    .screen h2{font-size:1.05rem}
+  }
+  @media (max-width:360px){
+    .atm-top .bal .pts-num{left:54%}
+    .atm-top .bal .paid-num{left:76%}
+    .qrs img{width:100px;height:100px}
+  }
+</style>
+</head>
+<body>
+
+<!-- 开场全屏视频：点击任意位置进入游戏 -->
+<div class="intro" id="intro">
+  <video id="introVideo" src="1.mp4" autoplay muted loop playsinline webkit-playsinline></video>
+  <div class="tap-hint">点击屏幕进入游戏</div>
+</div>
+
+<div class="atm">
+  <div class="atm-top">
+    <div class="brand">小姐取金游戏</div>
+    <div class="bal">
+      <span class="pts-num" id="pts">0</span>
+      <span class="paid-num" id="paid">0</span>
+    </div>
+  </div>
+  <div class="screen">
+    <h2 id="title">系统启动</h2>
+    <div class="txt" id="body">请稍候…</div>
+  </div>
+  <div class="clerk" id="clerk">……</div>
+  <div class="pad" id="pad"></div>
+</div>
+
+<div class="mask" id="pay">
+  <div class="box">
+    <h3>请选择支付宝或者微信支付</h3>
+    <div class="amt" id="payAmt">¥ —</div>
+    <p class="tip">让我来看看您到底选了多少❤️<br>上贡越多越好哦～</p>
+    <div class="qrs">
+      <div><p>支付宝扫码存金</p><img src="https://i.postimg.cc/SNh3sQBR/IMG-20260721-005325.jpg" alt="支付宝"></div>
+      <div><p>微信扫码存金</p><img src="https://i.postimg.cc/ht4YLyP8/IMG-20260721-005339.png" alt="微信"></div>
+    </div>
+    <button type="button" class="ok" id="btnPaid">已存金 / 继续</button>
+  </div>
+</div>
+
+<div class="timer" id="timer">
+  <div class="lab" id="tLab">取精体验</div>
+  <div class="gif-wrap" id="tGifWrap">
+    <img id="tGif" src="" alt="服务画面">
+  </div>
+  <div class="num" id="tNum">5</div>
+  <div class="hint" id="tHint"></div>
+</div>
+
+<script>
+(function(){
+  var points=0,paid=0,pending=0,cb=null;
+  var title=document.getElementById('title');
+  var body=document.getElementById('body');
+  var clerk=document.getElementById('clerk');
+  var pad=document.getElementById('pad');
+  var intro=document.getElementById('intro');
+  var introVideo=document.getElementById('introVideo');
+
+  var SVC={
+    smell:{name:'闻脚',cost:10,sec:8,gif:'1.gif',hint:'把脸凑近。\n只能闻，不准碰。\n深呼吸。'},
+    lick:{name:'舔脚',cost:30,sec:12,gif:'2.gif',hint:'从脚尖到脚心。\n慢慢舔。\n时间结束必须停。'},
+    foot:{name:'足交',cost:50,sec:18,gif:'3.gif',hint:'脚掌压住。\n慢慢动。\n倒计时结束前不准射。'},
+    climax:{name:'射精',cost:100,sec:10,gif:'4.gif',hint:'终于到这一步了。\n尽情释放吧。\n时间到必须停下。'}
+  };
+
+  /* 点击视频任意位置进入下一页 */
+  function enterGame(){
+    intro.classList.add('hide');
+    try{ introVideo.pause(); }catch(e){}
+    boot();
+  }
+  intro.addEventListener('click', enterGame);
+  intro.addEventListener('touchend', function(e){
+    e.preventDefault();
+    enterGame();
+  }, {passive:false});
+
+  /* 尝试自动播放（移动端可能需要静音） */
+  introVideo.play().catch(function(){});
+
+  function bal(){
+    document.getElementById('pts').textContent=points;
+    document.getElementById('paid').textContent=paid;
+  }
+  function say(t){clerk.textContent=t;}
+  function wins(on){
+    var a=['存金','取金','取精'],h='<div class="wins">';
+    a.forEach(function(n){h+='<span class="'+(n===on?'on':'')+'">'+n+'</span>';});
+    return h+'</div>';
+  }
+  function view(t,html){title.textContent=t;body.innerHTML=html;}
+  function keys(list){
+    pad.innerHTML='';
+    list.forEach(function(it){
+      var b=document.createElement('button');
+      b.textContent=it.l;
+      var cls=[];
+      if(it.main)cls.push('main');
+      if(it.pink)cls.push('pink');
+      if(it.gold)cls.push('gold');
+      if(it.dim)cls.push('dim');
+      if(it.full)cls.push('full');
+      if(cls.length)b.className=cls.join(' ');
+      b.onclick=it.f;
+      pad.appendChild(b);
+    });
+  }
+  function openPay(amt,fn){
+    pending=amt;cb=fn;
+    document.getElementById('payAmt').textContent='¥ '+amt;
+    document.getElementById('pay').classList.add('show');
+  }
+  document.getElementById('btnPaid').onclick=function(){
+    document.getElementById('pay').classList.remove('show');
+    var a=pending,f=cb;pending=0;cb=null;
+    if(!a)return;
+    paid+=a;points+=a;bal();
+    say('到账了呢。\n获赠'+a+'积分。');
+    if(f)f(a);
+  };
+
+  function runTimer(lab,sec,hint,gifSrc,done){
+    var m=document.getElementById('timer');
+    document.getElementById('tLab').textContent=lab;
+    document.getElementById('tHint').textContent=hint;
+    var img=document.getElementById('tGif');
+    if(gifSrc){
+      img.src=gifSrc+'?t='+Date.now();
+      img.style.display='block';
+      document.getElementById('tGifWrap').style.display='flex';
+    }else{
+      img.src='';
+      document.getElementById('tGifWrap').style.display='none';
+    }
+    var num=document.getElementById('tNum');
+    var left=sec;num.textContent=left;
+    m.classList.add('show');
+    var id=setInterval(function(){
+      left--;num.textContent=Math.max(0,left);
+      if(left<=0){
+        clearInterval(id);
+        m.classList.remove('show');
+        img.src='';
+        if(done)done();
+      }
+    },1000);
+  }
+
+  function showDisclaimer(){
+    bal();
+    view('免责协议',
+      '<div class="agree-box">'+
+      '<p><strong>重要提示（请仔细阅读）</strong></p>'+
+      '<p>1. 本游戏仅供<strong>年满18周岁</strong>的成年人娱乐使用，包含成人向内容。</p>'+
+      '<p>2. 游戏内所有积分、存金、取金均为<strong>虚拟娱乐机制</strong>，作者不对因使用本游戏产生的任何经济损失、心理影响或纠纷承担法律责任。</p>'+
+      '<p>3. 支付行为完全自愿，扫码后视为您已确认并自愿上贡。游戏不提供退款服务。</p>'+
+      '<p>4. 请理性消费，量力而行。切勿因游戏内容影响现实生活与财务安全。</p>'+
+      '<p>5. 继续即表示您已阅读、理解并同意本免责协议的全部内容。</p>'+
+      '</div>'
+    );
+    say('客官请先看清楚免责协议哦～❤️\n确认后再进入规则说明。');
+    keys([
+      {l:'我已阅读并同意',main:1,f:showRules},
+      {l:'不同意 / 退出',dim:1,full:1,f:function(){
+        view('已退出','您选择不同意免责协议，游戏已结束。');
+        say('那就再见了。');
+        keys([]);
+      }}
+    ]);
+  }
+
+  function showRules(){
+    view('游戏规则',
+      '<div class="agree-box">'+
+      '<p><strong>基本规则</strong></p>'+
+      '<p>· <strong>存金</strong>：通过扫码支付获得积分（1元=1积分）。存金越多，可体验的服务越丰富。</p>'+
+      '<p>· <strong>取精服务</strong>：使用积分兑换闻脚、舔脚、足交、射精等体验，服务期间有倒计时，时间到必须停止。</p>'+
+      '<p>· <strong>取金</strong>：暂时因不可抗力暂停开放。</p>'+
+      '<p>· 注册后赠送10积分，可免费体验一次5秒服务。</p>'+
+      '<p>· 积分不足时需先存金才能继续。</p>'+
+      '<p style="margin-top:10px;color:#fda4d4">小姐建议：上贡越多，体验越完整～❤️</p>'+
+      '</div>'
+    );
+    say('规则看明白了吗？\n准备好就开始注册叭。');
+    keys([
+      {l:'开始注册',main:1,f:login},
+      {l:'返回协议',dim:1,full:1,f:showDisclaimer}
+    ]);
+  }
+
+  function boot(){
+    showDisclaimer();
+  }
+
+  function login(){
+    view('玩家注册',wins('存金')+'请输入您的姓名或小名❤️\n\n再输入常用的6位支付密码，只是为了方便记忆，不会用来胁迫\n\n<input id="u" placeholder="用户名 / 小名" maxlength="20"><input id="p" type="password" placeholder="6位支付密码" maxlength="6" inputmode="numeric">');
+    say('注册完成后会送你免费体验积分。');
+    keys([{l:'注册并开始',main:1,f:function(){
+      var u=(document.getElementById('u').value||'').trim();
+      var p=(document.getElementById('p').value||'').trim();
+      if(!u){alert('请输入姓名或小名');return;}
+      if(p.length<4){alert('请输入支付密码');return;}
+      points=10;bal();
+      gift();
+    }}]);
+  }
+
+  function gift(){
+    view('注册成功',wins('存金')+'恭喜注册成功！\n作为 小姐取金游戏 首位玩家，赠送免费体验积分 10。\n\n当前积分：10');
+    say('您已经拥有10积分咯\n接下来去体验取精服务叭');
+    keys([
+      {l:'去取精体验',main:1,f:toEdge}
+    ]);
+  }
+
+  function toEdge(){
+    view('取精体验室',wins('取精')+'欢迎来到取精体验室❤️\n\n你有10积分，可以免费体验一次。\n体验时长：5秒。');
+    say('这里就是本行的取精室哦❤️\n取精服务就是小姐来帮你释放精力。');
+    keys([
+      {l:'开始5秒体验',pink:1,full:1,f:sec5}
+    ]);
+  }
+
+  function sec5(){
+    points=Math.max(0,points-10);bal();
+    runTimer('5秒免费体验',5,'体验就是体验哦\n只有5秒钟——\n好好感受。','1.gif',function(){
+      view('体验结束',wins('取精')+'5秒体验已经结束。\n\n积分已消耗光。\n想继续就去存金叭。');
+      say('不行呢❤️\n想要更多嘛❤️\n那就只能存金了呀');
+      keys([
+        {l:'去存金',main:1,f:deposit},
+        {l:'才不要',dim:1,full:1,f:poor}
+      ]);
+    });
+  }
+
+  function deposit(){
+    view('存金充值',wins('存金')+'请选择想存金的数额叭\n\n小姐只有一个建议呢\n越多越好\n\n<em>必须扫码完成才会入账</em>');
+    say('让我来看看您到底选了多少❤️');
+    keys([
+      {l:'100',main:1,f:function(){openPay(100,afterPay);}},
+      {l:'50',f:function(){openPay(50,afterPay);}},
+      {l:'10',f:function(){openPay(10,afterPay);}},
+      {l:'返回主菜单',dim:1,full:1,f:menu}
+    ]);
+  }
+
+  function afterPay(a){
+    var t='恭喜您！存金成功！并获赠'+a+'积分！\n\n';
+    if(a>=100)t+='客人果然会因为喜欢脚的怪癖抛弃自己的钱包呢❤️';
+    else if(a>=50)t+='50积分呀\n已经可以体验较长时间的服务了';
+    else t+='10积分啊\n您的时长和钱包一样没用';
+    view('存金成功',wins('存金')+t+'\n\n当前积分：'+points);
+    say('可以去取精服务柜台使用积分了。');
+    keys([
+      {l:'去取精服务',pink:1,f:menuSvc},
+      {l:'再存一笔',f:deposit},
+      {l:'主菜单',dim:1,full:1,f:menu}
+    ]);
+  }
+
+  function poor(){
+    view('拒绝服务','免费的5秒已经用完，积分为0。\n\n没有存金的玩家，不配继续使用取精服务。');
+    say('回去叭');
+    keys([
+      {l:'还是去存金',main:1,f:deposit},
+      {l:'确认离开',dim:1,full:1,f:function(){view('拜拜！','已退出游戏');say('拜拜！！！');keys([]);} }
+    ]);
+  }
+
+  function withdraw(){
+    view('取金业务',wins('取金')+'抱歉小姐的取金业务因某些不可抗力暂停开放～🖤');
+    say('取金暂时开不了哦\n先去存金或取精玩吧');
+    keys([
+      {l:'返回主菜单',main:1,f:menu}
+    ]);
+  }
+
+  function menu(){
+    view('主菜单',wins('')+'当前积分：'+points+'\n累计存金：'+paid+'\n\n请选择业务');
+    say(points>0?'积分还有，想兑换服务或再存一点随你。':'积分为0，想享受服务先存金。');
+    keys([
+      {l:'存金',main:1,f:deposit},
+      {l:'取金',f:withdraw},
+      {l:'取精服务',pink:1,f:menuSvc},
+      {l:'离开游戏',dim:1,full:1,f:function(){view('欢迎下次光临','拜拜！');say('欢迎下次光临');keys([{l:'再来一次',main:1,f:function(){location.reload();}}]);} }
+    ]);
+  }
+
+  function menuSvc(){
+    view('取精业务',wins('取精')+
+      '<div class="svc-list">'+
+      '<div>· 闻脚 — <span class="cost">10积分</span> / 8秒</div>'+
+      '<div>· 舔脚 — <span class="cost">30积分</span> / 12秒</div>'+
+      '<div>· 足交 — <span class="cost">50积分</span> / 18秒</div>'+
+      '<div>· 射精 — <span class="cost">100积分</span> / 10秒 ★终极</div>'+
+      '</div>\n当前积分：'+points);
+    say('选一项。积分够就开倒计时并播放画面。\n射精是取精业务里的终极服务哦。');
+    keys([
+      {l:'闻脚 (10)',pink:1,f:function(){use('smell');}},
+      {l:'舔脚 (30)',pink:1,f:function(){use('lick');}},
+      {l:'足交 (50)',pink:1,f:function(){use('foot');}},
+      {l:'射精 (100)',gold:1,f:function(){use('climax');}},
+      {l:'返回主菜单',dim:1,full:1,f:menu}
+    ]);
+  }
+
+  function use(k){
+    var s=SVC[k];
+    if(points<s.cost){
+      say('积分不足，请先存金。');
+      view('积分不足',wins('取精')+'当前：'+points+'\n需要：'+s.cost);
+      keys([{l:'去存金',main:1,f:deposit},{l:'返回服务列表',dim:1,full:1,f:menuSvc}]);
+      return;
+    }
+    points-=s.cost;bal();
+    say('「'+s.name+'」开始。时间到必须停。');
+    runTimer(s.name,s.sec,s.hint,s.gif,function(){
+      view('服务结束',wins('取精')+'【'+s.name+'】已结束\n剩余积分：'+points);
+      say(k==='climax'?'终极服务完成。还想再来就再存一笔。':'还想要就再换，或再存一笔。');
+      keys([
+        {l:'再选服务',pink:1,f:menuSvc},
+        {l:'存金',main:1,f:deposit},
+        {l:'主菜单',dim:1,full:1,f:menu}
+      ]);
+    });
+  }
+
+  /* 注意：不再直接 boot()，等用户点击视频后再进入 */
+})();
+</script>
+</body>
+</html>
