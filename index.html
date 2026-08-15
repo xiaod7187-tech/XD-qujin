@@ -3,13 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>像素图工具 · 单图像素化 & 像素溶解过渡 + 微动</title>
+  <title>像素图工具 - 单图像素化 + 像素微动</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: #111;
       color: #eee;
@@ -20,52 +16,8 @@
       align-items: center;
       padding: 30px 20px 60px;
     }
-    h1 {
-      font-size: 1.6rem;
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-    .subtitle {
-      color: #888;
-      font-size: 0.95rem;
-      margin-bottom: 22px;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 22px;
-    }
-    .tab-btn {
-      background: #1c1c1c;
-      color: #aaa;
-      border: 1px solid #333;
-      padding: 10px 22px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      transition: all 0.2s;
-    }
-    .tab-btn.active {
-      background: #6c5ce7;
-      color: white;
-      border-color: #6c5ce7;
-    }
-    .tab-btn:hover:not(.active) {
-      background: #2a2a2a;
-      color: #ddd;
-    }
-
-    .panel {
-      display: none;
-      width: 100%;
-      max-width: 920px;
-      flex-direction: column;
-      align-items: center;
-    }
-    .panel.active {
-      display: flex;
-    }
+    h1 { font-size: 1.6rem; margin-bottom: 6px; font-weight: 600; }
+    .subtitle { color: #888; font-size: 0.95rem; margin-bottom: 22px; }
 
     .controls {
       display: flex;
@@ -80,93 +32,21 @@
       border: 1px solid #333;
       width: 100%;
     }
-    .control-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    label {
-      font-size: 0.88rem;
-      color: #bbb;
-      white-space: nowrap;
-    }
-    input[type="range"] {
-      width: 120px;
-      accent-color: #6c5ce7;
-    }
-    .value {
-      min-width: 32px;
-      text-align: center;
-      font-weight: 600;
-      color: #a29bfe;
-      font-size: 0.9rem;
-    }
-    input[type="file"] {
-      display: none;
-    }
-    .file-btn {
-      background: #2d3436;
-      color: #ddd;
-      border: 1px solid #444;
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.88rem;
-      transition: background 0.2s;
-    }
-    .file-btn:hover {
-      background: #3d4446;
-    }
-    .file-name {
-      font-size: 0.8rem;
-      color: #888;
-      max-width: 140px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    select {
-      background: #2d3436;
-      color: #ddd;
-      border: 1px solid #444;
-      padding: 7px 12px;
-      border-radius: 8px;
-      font-size: 0.88rem;
-      cursor: pointer;
-    }
-    button.action {
-      background: #6c5ce7;
-      color: white;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.2s;
-    }
-    button.action:hover {
-      background: #5a4bd1;
-    }
-    button.action:active {
-      transform: scale(0.97);
-    }
-    button.action.green {
-      background: #00b894;
-    }
-    button.action.green:hover {
-      background: #00a884;
-    }
-    button.action.orange {
-      background: #e17055;
-    }
-    button.action.orange:hover {
-      background: #d16045;
-    }
-    button.action:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-    }
+    .control-group { display: flex; align-items: center; gap: 8px; }
+    label { font-size: 0.88rem; color: #bbb; white-space: nowrap; }
+    input[type="range"] { width: 120px; accent-color: #6c5ce7; }
+    .value { min-width: 32px; text-align: center; font-weight: 600; color: #a29bfe; font-size: 0.9rem; }
+    input[type="file"] { display: none; }
+    .file-btn { background: #2d3436; color: #ddd; border: 1px solid #444; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.88rem; transition: background 0.2s; }
+    .file-btn:hover { background: #3d4446; }
+    .file-name { font-size: 0.8rem; color: #888; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    button.action { background: #6c5ce7; color: white; border: none; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; }
+    button.action:hover { background: #5a4bd1; }
+    button.action:active { transform: scale(0.97); }
+    button.action.green { background: #00b894; }
+    button.action.green:hover { background: #00a884; }
+    button.action.orange { background: #e17055; }
+    button.action.orange:hover { background: #d16045; }
 
     .canvas-wrapper {
       background: #0a0a0a;
@@ -176,47 +56,11 @@
       max-width: 100%;
       overflow: auto;
     }
-    canvas {
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-      display: block;
-      max-width: 100%;
-    }
-    .info {
-      margin-top: 16px;
-      font-size: 0.85rem;
-      color: #666;
-      text-align: center;
-      line-height: 1.5;
-    }
-    .status {
-      margin-top: 12px;
-      font-size: 0.9rem;
-      color: #a29bfe;
-      min-height: 1.4em;
-    }
-    .preview-row {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
-    .preview-box {
-      text-align: center;
-    }
-    .preview-box p {
-      font-size: 0.8rem;
-      color: #888;
-      margin-bottom: 6px;
-    }
-    .preview-box canvas {
-      border: 1px solid #333;
-      border-radius: 6px;
-      background: #0a0a0a;
-    }
+    canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; max-width: 100%; }
 
-    /* 新增微动控制 */
+    .info { margin-top: 16px; font-size: 0.85rem; color: #666; text-align: center; line-height: 1.5; }
+    .status { margin-top: 12px; font-size: 0.9rem; color: #a29bfe; min-height: 1.4em; }
+
     .motion-controls {
       display: flex;
       flex-wrap: wrap;
@@ -234,137 +78,72 @@
 </head>
 <body>
   <h1>像素图工具</h1>
-  <p class="subtitle">单图像素化 · 双图像素溶解过渡（纯前端） + 像素微动</p>
+  <p class="subtitle">单图像素化 + 像素微动循环（纯前端）</p>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="single">单图 → 像素块</button>
-    <button class="tab-btn" data-tab="morph">双图 → 像素溶解</button>
+  <div class="controls">
+    <div class="control-group">
+      <label class="file-btn" for="singleFile">选择图片</label>
+      <input type="file" id="singleFile" accept="image/*">
+      <span class="file-name" id="singleFileName">未选择</span>
+    </div>
+
+    <div class="control-group">
+      <label>像素精度</label>
+      <input type="range" id="singleRes" min="24" max="200" value="80" step="8">
+      <span class="value" id="singleResVal">80</span>
+    </div>
+
+    <div class="control-group">
+      <label>放大倍数</label>
+      <input type="range" id="singleScale" min="2" max="12" value="5" step="1">
+      <span class="value" id="singleScaleVal">5</span>
+    </div>
+
+    <button class="action" onclick="processSingle()">重新生成</button>
+    <button class="action green" onclick="downloadSingle()">下载图片</button>
   </div>
 
-  <!-- ========== 单图像素化 + 微动 ========== -->
-  <div class="panel active" id="panel-single">
-    <div class="controls">
-      <div class="control-group">
-        <label class="file-btn" for="singleFile">选择图片</label>
-        <input type="file" id="singleFile" accept="image/*">
-        <span class="file-name" id="singleFileName">未选择</span>
-      </div>
-
-      <div class="control-group">
-        <label>像素精度</label>
-        <input type="range" id="singleRes" min="24" max="200" value="80" step="8">
-        <span class="value" id="singleResVal">80</span>
-      </div>
-
-      <div class="control-group">
-        <label>放大倍数</label>
-        <input type="range" id="singleScale" min="2" max="12" value="5" step="1">
-        <span class="value" id="singleScaleVal">5</span>
-      </div>
-
-      <button class="action" onclick="processSingle()">重新生成</button>
-      <button class="action green" onclick="downloadSingle()">下载图片</button>
-    </div>
-
-    <div class="canvas-wrapper">
-      <canvas id="singleCanvas"></canvas>
-    </div>
-
-    <!-- 微动控制面板 -->
-    <div class="motion-controls">
-      <div class="control-group">
-        <label>微动强度</label>
-        <input type="range" id="singleMotion" min="0" max="100" value="30" step="5">
-        <span class="value" id="singleMotionVal">30</span>
-      </div>
-      <button class="action orange" onclick="toggleSingleMotion()">开始/停止微动</button>
-      <button class="action" onclick="downloadSingleMotion()">下载带微动图片</button>
-    </div>
-
-    <p class="info">提示：精度越低，像素块越大、越抽象；精度越高，越接近原图。</p>
-    <p class="info" style="margin-top:8px;">拖动微动强度滑块 + 点击“开始/停止微动”即可让女孩轻轻摇摆、颤动</p>
+  <div class="canvas-wrapper">
+    <canvas id="singleCanvas"></canvas>
   </div>
 
-  <!-- ========== 双图像素溶解 ========== -->
-  <div class="panel" id="panel-morph">
-    <div class="controls">
-      <div class="control-group">
-        <label class="file-btn" for="startFile">起始图</label>
-        <input type="file" id="startFile" accept="image/*">
-        <span class="file-name" id="startFileName">未选择</span>
-      </div>
-      <div class="control-group">
-        <label class="file-btn" for="endFile">结束图</label>
-        <input type="file" id="endFile" accept="image/*">
-        <span class="file-name" id="endFileName">未选择</span>
-      </div>
-
-      <div class="control-group">
-        <label>像素精度</label>
-        <input type="range" id="morphRes" min="24" max="160" value="64" step="8">
-        <span class="value" id="morphResVal">64</span>
-      </div>
-
-      <div class="control-group">
-        <label>放大倍数</label>
-        <input type="range" id="morphScale" min="2" max="10" value="5" step="1">
-        <span class="value" id="morphScaleVal">5</span>
-      </div>
-
-      <div class="control-group">
-        <label>时长(秒)</label>
-        <input type="range" id="morphDuration" min="1" max="8" value="2.5" step="0.5">
-        <span class="value" id="morphDurationVal">2.5</span>
-      </div>
-
-      <div class="control-group">
-        <label>帧率</label>
-        <input type="range" id="morphFps" min="8" max="30" value="15" step="1">
-        <span class="value" id="morphFpsVal">15</span>
-      </div>
+  <!-- 微动控制 -->
+  <div class="motion-controls">
+    <div class="control-group">
+      <label>微动强度</label>
+      <input type="range" id="singleMotion" min="0" max="100" value="30" step="5">
+      <span class="value" id="singleMotionVal">30</span>
     </div>
-
-    <div class="controls" style="margin-top:-6px;">
-      <div class="control-group">
-        <label>溶解模式</label>
-        <select id="dissolveMode">
-          <option value="pixel">像素溶解（推荐）</option>
-          <option value="block2">色块溶解 2×2</option>
-          <option value="block4">色块溶解 4×4</option>
-          <option value="linear">线性颜色渐变</option>
-        </select>
-      </div>
-
-      <button class="action" id="btnPlay" onclick="playMorph()" disabled>播放预览</button>
-      <button class="action orange" id="btnRecord" onclick="recordMorph()" disabled>录制并下载视频</button>
-      <button class="action" id="btnStop" onclick="stopMorph()" disabled style="background:#636e72;">停止</button>
-    </div>
-
-    <div class="preview-row">
-      <div class="preview-box">
-        <p>起始（像素化）</p>
-        <canvas id="previewStart" width="120" height="120"></canvas>
-      </div>
-      <div class="preview-box">
-        <p>结束（像素化）</p>
-        <canvas id="previewEnd" width="120" height="120"></canvas>
-      </div>
-    </div>
-
-    <div class="canvas-wrapper">
-      <canvas id="morphCanvas"></canvas>
-    </div>
-    <p class="status" id="morphStatus">请先上传起始图和结束图</p>
-    <p class="info">
-      像素溶解：每个像素有固定“阈值”，进度超过阈值时直接切换成结束图颜色，无中间发灰。<br>
-      色块溶解：按 2×2 / 4×4 方块一起切换，更粗犷。<br>
-      录制输出 WebM（Chrome / Edge 最佳）。
-    </p>
+    <button class="action orange" onclick="toggleSingleMotion()">开始/停止微动</button>
+    <button class="action" onclick="downloadSingleMotion()">下载带微动图片</button>
   </div>
+
+  <p class="info">提示：拖动微动强度滑块 + 点击“开始/停止微动”即可让女孩轻轻摇摆、颤动</p>
 
   <script>
+    let singleImg = null;
+    const singleCanvas = document.getElementById('singleCanvas');
+    const singleCtx = singleCanvas.getContext('2d');
 
-    // ==================== 通用工具 ====================
+    document.getElementById('singleFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('singleFileName').textContent = file.name;
+      try {
+        singleImg = await loadImageFromFile(file);
+        processSingle();
+      } catch (err) {
+        alert('图片加载失败');
+      }
+    });
+
+    document.getElementById('singleRes').oninput = (e) => {
+      document.getElementById('singleResVal').textContent = e.target.value;
+    };
+    document.getElementById('singleScale').oninput = (e) => {
+      document.getElementById('singleScaleVal').textContent = e.target.value;
+    };
+
     function loadImageFromFile(file) {
       return new Promise((resolve, reject) => {
         if (!file) return reject(new Error('无文件'));
@@ -408,48 +187,6 @@
       }
     }
 
-    // 确定性伪随机（0\~1），基于整数坐标，保证同一像素每次结果相同
-    function pixelThreshold(x, y, seed = 0) {
-      let n = x * 374761393 + y * 668265263 + seed * 982451653;
-      n = (n ^ (n >>> 13)) * 1274126177;
-      n = n ^ (n >>> 16);
-      return (n >>> 0) / 4294967295;
-    }
-
-    // ==================== 标签切换 ====================
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-      });
-    });
-
-    // ==================== 单图像素化 ====================
-    let singleImg = null;
-    const singleCanvas = document.getElementById('singleCanvas');
-    const singleCtx = singleCanvas.getContext('2d');
-
-    document.getElementById('singleFile').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      document.getElementById('singleFileName').textContent = file.name;
-      try {
-        singleImg = await loadImageFromFile(file);
-        processSingle();
-      } catch (err) {
-        alert('图片加载失败');
-      }
-    });
-
-    document.getElementById('singleRes').oninput = (e) => {
-      document.getElementById('singleResVal').textContent = e.target.value;
-    };
-    document.getElementById('singleScale').oninput = (e) => {
-      document.getElementById('singleScaleVal').textContent = e.target.value;
-    };
-
     function processSingle() {
       if (!singleImg) return;
       const targetW = parseInt(document.getElementById('singleRes').value);
@@ -465,7 +202,7 @@
       drawPixelBlocks(singleCtx, imageData, scale);
     }
 
-    // ==================== 单图微动 ====================
+    // ==================== 像素微动循环 ====================
     let singleMotionTimer = null;
     let singleMotionActive = false;
     let singleMotionFrame = 0;
@@ -477,28 +214,25 @@
       
       if (singleMotionActive) {
         document.getElementById('singleMotionVal').textContent = motionVal;
-        originalSingleData = getPixelData(singleImg, morphW || 80, morphH || 80);
+        originalSingleData = getPixelData(singleImg, 80, 80); // 默认大小
         singleMotionFrame = 0;
         singleMotionTimer = setInterval(() => {
           if (singleMotionActive && singleImg) {
             animateSinglePixel(motionVal);
           }
-        }, 16); // \~60fps 流畅
+        }, 16);
       } else {
         clearInterval(singleMotionTimer);
         singleMotionTimer = null;
         if (singleImg) {
-          const imageData = getPixelData(singleImg, morphW || 80, morphH || 80);
-          singleCanvas.width = (morphW || 80) * parseInt(document.getElementById('singleScale').value);
-          singleCanvas.height = (morphH || 80) * parseInt(document.getElementById('singleScale').value);
-          drawPixelBlocks(singleCtx, imageData, parseInt(document.getElementById('singleScale').value));
+          processSingle();
         }
       }
     }
 
     function animateSinglePixel(motion) {
-      const w = morphW || 80;
-      const h = morphH || 80;
+      const w = 80;
+      const h = 80;
       const scale = parseInt(document.getElementById('singleScale').value);
       const mid = singleCtx.createImageData(w * scale, h * scale);
 
@@ -514,11 +248,8 @@
           const i = (y * w + x) * 4;
           const idx = (y * scale * (w * scale) + x * scale) * 4;
 
-          // 头部轻摇（左右）
           const headOffsetX = shake * Math.sin((x + y * 3) * 0.12);
-          // 身体轻颤（上下）
           const bodyOffsetY = bob * Math.sin((x * 2 + y) * 0.08);
-          // 布料轻晃（裙子黑丝）
           const skirtOffsetY = skirtSwing * Math.sin(x * 0.15 + y * 0.25);
 
           const finalX = Math.max(0, Math.min(w - 1, x + Math.floor(headOffsetX)));
@@ -553,282 +284,22 @@
       link.click();
     }
 
-    // ==================== 双图过渡（像素溶解） ====================
-    let startImg = null;
-    let endImg = null;
-    let startData = null;
-    let endData = null;
-    let morphW = 0, morphH = 0;
-    let animId = null;
-    let isPlaying = false;
-    let isRecording = false;
-    let mediaRecorder = null;
-    let recordedChunks = [];
-
-    const morphCanvas = document.getElementById('morphCanvas');
-    const morphCtx = morphCanvas.getContext('2d');
-    const previewStart = document.getElementById('previewStart');
-    const previewEnd = document.getElementById('previewEnd');
-
-    document.getElementById('morphRes').oninput = (e) => {
-      document.getElementById('morphResVal').textContent = e.target.value;
-      prepareMorphData();
-    };
-    document.getElementById('morphScale').oninput = (e) => {
-      document.getElementById('morphScaleVal').textContent = e.target.value;
-      prepareMorphData();
-    };
-    document.getElementById('morphDuration').oninput = (e) => {
-      document.getElementById('morphDurationVal').textContent = e.target.value;
-    };
-    document.getElementById('morphFps').oninput = (e) => {
-      document.getElementById('morphFpsVal').textContent = e.target.value;
-    };
-    document.getElementById('dissolveMode').onchange = () => {
-      if (startData && endData) drawInterpolated(0);
-    };
-
-    document.getElementById('startFile').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      document.getElementById('startFileName').textContent = file.name;
-      try {
-        startImg = await loadImageFromFile(file);
-        prepareMorphData();
-      } catch (err) {
-        alert('起始图加载失败');
-      }
-    });
-
-    document.getElementById('endFile').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      document.getElementById('endFileName').textContent = file.name;
-      try {
-        endImg = await loadImageFromFile(file);
-        prepareMorphData();
-      } catch (err) {
-        alert('结束图加载失败');
-      }
-    });
-
-    function prepareMorphData() {
-      if (!startImg || !endImg) {
-        updateMorphButtons(false);
-        document.getElementById('morphStatus').textContent = '请先上传起始图和结束图';
-        return;
-      }
-
-      const targetW = parseInt(document.getElementById('morphRes').value);
-      const scale = parseInt(document.getElementById('morphScale').value);
-
-      const aspect = startImg.height / startImg.width;
-      morphW = targetW;
-      morphH = Math.max(1, Math.round(targetW * aspect));
-
-      startData = getPixelData(startImg, morphW, morphH);
-      endData = getPixelData(endImg, morphW, morphH);
-
-      drawSmallPreview(previewStart, startData);
-      drawSmallPreview(previewEnd, endData);
-
-      morphCanvas.width = morphW * scale;
-      morphCanvas.height = morphH * scale;
-      morphCtx.imageSmoothingEnabled = false;
-
-      drawInterpolated(0);
-
-      updateMorphButtons(true);
-      document.getElementById('morphStatus').textContent = `已就绪：\( {morphW}× \){morphH} 像素 · 可播放或录制`;
-    }
-
-    function drawSmallPreview(canvas, imageData) {
-      const maxSide = 120;
-      const scale = Math.max(1, Math.floor(maxSide / Math.max(imageData.width, imageData.height)));
-      canvas.width = imageData.width * scale;
-      canvas.height = imageData.height * scale;
-      const ctx = canvas.getContext('2d');
-      ctx.imageSmoothingEnabled = false;
-      drawPixelBlocks(ctx, imageData, scale);
-    }
-
-    // t: 0\~1
-    function drawInterpolated(t) {
-      if (!startData || !endData) return;
-      const scale = parseInt(document.getElementById('morphScale').value);
-      const mode = document.getElementById('dissolveMode').value;
-      const w = morphW, h = morphH;
-      const s = startData.data;
-      const e = endData.data;
-
-      const mid = morphCtx.createImageData(w, h);
-      const d = mid.data;
-
-      if (mode === 'linear') {
-        for (let i = 0; i < d.length; i += 4) {
-          d[i]     = Math.round(s[i]     * (1 - t) + e[i]     * t);
-          d[i + 1] = Math.round(s[i + 1] * (1 - t) + e[i + 1] * t);
-          d[i + 2] = Math.round(s[i + 2] * (1 - t) + e[i + 2] * t);
-          d[i + 3] = Math.round(s[i + 3] * (1 - t) + e[i + 3] * t);
-        }
-      } else {
-        let block = 1;
-        if (mode === 'block2') block = 2;
-        if (mode === 'block4') block = 4;
-
-        for (let y = 0; y < h; y++) {
-          for (let x = 0; x < w; x++) {
-            const i = (y * w + x) * 4;
-            const bx = Math.floor(x / block) * block;
-            const by = Math.floor(y / block) * block;
-            const thresh = pixelThreshold(bx, by, 42);
-
-            if (t >= thresh) {
-              d[i]     = e[i];
-              d[i + 1] = e[i + 1];
-              d[i + 2] = e[i + 2];
-              d[i + 3] = e[i + 3];
-            } else {
-              d[i]     = s[i];
-              d[i + 1] = s[i + 1];
-              d[i + 2] = s[i + 2];
-              d[i + 3] = s[i + 3];
-            }
-          }
-        }
-      }
-
-      drawPixelBlocks(morphCtx, mid, scale);
-    }
-
-    function updateMorphButtons(ready) {
-      document.getElementById('btnPlay').disabled = !ready || isPlaying || isRecording;
-      document.getElementById('btnRecord').disabled = !ready || isPlaying || isRecording;
-      document.getElementById('btnStop').disabled = !(isPlaying || isRecording);
-    }
-
-    function playMorph() {
-      if (!startData || !endData || isPlaying) return;
-      isPlaying = true;
-      updateMorphButtons(false);
-      document.getElementById('btnStop').disabled = false;
-
-      const duration = parseFloat(document.getElementById('morphDuration').value) * 1000;
-      const fps = parseInt(document.getElementById('morphFps').value);
-      const frameTime = 1000 / fps;
-      const totalFrames = Math.round(duration / frameTime);
-      let frame = 0;
-      let lastTime = performance.now();
-
-      document.getElementById('morphStatus').textContent = '播放中…';
-
-      function loop(now) {
-        if (!isPlaying) return;
-        if (now - lastTime >= frameTime) {
-          const t = Math.min(1, frame / totalFrames);
-          drawInterpolated(t);
-          frame++;
-          lastTime = now;
-          if (frame > totalFrames) {
-            isPlaying = false;
-            updateMorphButtons(true);
-            document.getElementById('morphStatus').textContent = '播放完成';
-            return;
-          }
-        }
-        animId = requestAnimationFrame(loop);
-      }
-      animId = requestAnimationFrame(loop);
-    }
-
-    function stopMorph() {
-      isPlaying = false;
-      if (animId) {
-        cancelAnimationFrame(animId);
-        animId = null;
-      }
-      if (isRecording && mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-      }
-      isRecording = false;
-      updateMorphButtons(true);
-      document.getElementById('morphStatus').textContent = '已停止';
-    }
-
-    async function recordMorph() {
-      if (!startData || !endData || isRecording) return;
-
-      if (!window.MediaRecorder) {
-        alert('当前浏览器不支持 MediaRecorder，请使用 Chrome / Edge / Firefox');
-        return;
-      }
-
-      isRecording = true;
-      isPlaying = true;
-      updateMorphButtons(false);
-      document.getElementById('btnStop').disabled = false;
-      recordedChunks = [];
-
-      const stream = morphCanvas.captureStream(30);
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-        ? 'video/webm;codecs=vp9'
-        : MediaRecorder.isTypeSupported('video/webm;codecs=vp8')
-          ? 'video/webm;codecs=vp8'
-          : 'video/webm';
-
-      mediaRecorder = new MediaRecorder(stream, {
-        mimeType,
-        videoBitsPerSecond: 2500000
+    // 通用函数
+    function loadImageFromFile(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) return reject(new Error('无文件'));
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve(img);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('图片加载失败'));
+        };
+        img.src = url;
       });
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'pixel-dissolve.webm';
-        a.click();
-        URL.revokeObjectURL(url);
-        isRecording = false;
-        isPlaying = false;
-        updateMorphButtons(true);
-        document.getElementById('morphStatus').textContent = '视频已下载（WebM）';
-      };
-
-      mediaRecorder.start(100);
-
-      const duration = parseFloat(document.getElementById('morphDuration').value) * 1000;
-      const fps = parseInt(document.getElementById('morphFps').value);
-      const frameTime = 1000 / fps;
-      const totalFrames = Math.round(duration / frameTime);
-      let frame = 0;
-      let lastTime = performance.now();
-
-      document.getElementById('morphStatus').textContent = '正在录制…';
-
-      function loop(now) {
-        if (!isRecording) return;
-        if (now - lastTime >= frameTime) {
-          const t = Math.min(1, frame / totalFrames);
-          drawInterpolated(t);
-          frame++;
-          lastTime = now;
-          if (frame > totalFrames) {
-            setTimeout(() => {
-              if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-              }
-            }, 200);
-            return;
-          }
-        }
-        animId = requestAnimationFrame(loop);
-      }
-      animId = requestAnimationFrame(loop);
     }
   </script>
 </body>
