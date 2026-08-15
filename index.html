@@ -122,6 +122,9 @@
 
   <script>
     let singleImg = null;
+    let originalData = null;           // 存储原始像素数据
+    let currentW = 0;
+    let currentH = 0;
     const singleCanvas = document.getElementById('singleCanvas');
     const singleCtx = singleCanvas.getContext('2d');
 
@@ -139,9 +142,11 @@
 
     document.getElementById('singleRes').oninput = (e) => {
       document.getElementById('singleResVal').textContent = e.target.value;
+      if (singleImg) processSingle();
     };
     document.getElementById('singleScale').oninput = (e) => {
       document.getElementById('singleScaleVal').textContent = e.target.value;
+      if (singleImg) processSingle();
     };
 
     function loadImageFromFile(file) {
@@ -200,13 +205,18 @@
       singleCanvas.height = h * scale;
       singleCtx.imageSmoothingEnabled = false;
       drawPixelBlocks(singleCtx, imageData, scale);
+
+      // 保存当前像素数据（用于微动）
+      originalData = imageData;
+      currentW = w;
+      currentH = h;
     }
 
     // ==================== 像素微动循环 ====================
     let singleMotionTimer = null;
     let singleMotionActive = false;
     let singleMotionFrame = 0;
-    let originalSingleData = null;
+    let originalSingleData = null;   // 旧版本兼容
 
     function toggleSingleMotion() {
       singleMotionActive = !singleMotionActive;
@@ -214,7 +224,13 @@
       
       if (singleMotionActive) {
         document.getElementById('singleMotionVal').textContent = motionVal;
-        originalSingleData = getPixelData(singleImg, 80, 80); // 默认大小
+        if (originalData) {
+          originalSingleData = originalData;
+        } else {
+          // 首次未生成时自动生成
+          if (singleImg) processSingle();
+          return;
+        }
         singleMotionFrame = 0;
         singleMotionTimer = setInterval(() => {
           if (singleMotionActive && singleImg) {
@@ -231,10 +247,9 @@
     }
 
     function animateSinglePixel(motion) {
-      const w = 80;
-      const h = 80;
+      if (!originalSingleData) return;
       const scale = parseInt(document.getElementById('singleScale').value);
-      const mid = singleCtx.createImageData(w * scale, h * scale);
+      const mid = singleCtx.createImageData(currentW * scale, currentH * scale);
 
       const s = originalSingleData.data;
       const d = mid.data;
@@ -243,19 +258,19 @@
       const bob = Math.floor(motion / 4) * Math.sin(singleMotionFrame * 0.15 + 2);
       const skirtSwing = Math.floor(motion / 5) * Math.sin(singleMotionFrame * 0.4);
 
-      for (let y = 0; y < h; y++) {
-        for (let x = 0; x < w; x++) {
-          const i = (y * w + x) * 4;
-          const idx = (y * scale * (w * scale) + x * scale) * 4;
+      for (let y = 0; y < currentH; y++) {
+        for (let x = 0; x < currentW; x++) {
+          const i = (y * currentW + x) * 4;
+          const idx = (y * scale * (currentW * scale) + x * scale) * 4;
 
           const headOffsetX = shake * Math.sin((x + y * 3) * 0.12);
           const bodyOffsetY = bob * Math.sin((x * 2 + y) * 0.08);
           const skirtOffsetY = skirtSwing * Math.sin(x * 0.15 + y * 0.25);
 
-          const finalX = Math.max(0, Math.min(w - 1, x + Math.floor(headOffsetX)));
-          const finalY = Math.max(0, Math.min(h - 1, y + Math.floor(bodyOffsetY) + Math.floor(skirtOffsetY)));
+          const finalX = Math.max(0, Math.min(currentW - 1, x + Math.floor(headOffsetX)));
+          const finalY = Math.max(0, Math.min(currentH - 1, y + Math.floor(bodyOffsetY) + Math.floor(skirtOffsetY)));
 
-          const finalIdx = (finalY * w + finalX) * 4;
+          const finalIdx = (finalY * currentW + finalX) * 4;
 
           d[idx]     = s[finalIdx];
           d[idx + 1] = s[finalIdx + 1];
@@ -284,7 +299,6 @@
       link.click();
     }
 
-    // 通用函数
     function loadImageFromFile(file) {
       return new Promise((resolve, reject) => {
         if (!file) return reject(new Error('无文件'));
