@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>像素图工具 · 单图像素化 & 像素溶解过渡</title>
+  <title>像素图工具 · 单图像素化 & 像素溶解过渡 + 微动</title>
   <style>
     * {
       margin: 0;
@@ -215,18 +215,33 @@
       border-radius: 6px;
       background: #0a0a0a;
     }
+
+    /* 新增微动控制 */
+    .motion-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: center;
+      background: #1c1c1c;
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-top: 16px;
+      border: 1px solid #333;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
   <h1>像素图工具</h1>
-  <p class="subtitle">单图像素化 · 双图像素溶解过渡（纯前端）</p>
+  <p class="subtitle">单图像素化 · 双图像素溶解过渡（纯前端） + 像素微动</p>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="single">单图 → 像素块</button>
     <button class="tab-btn" data-tab="morph">双图 → 像素溶解</button>
   </div>
 
-  <!-- ========== 单图像素化 ========== -->
+  <!-- ========== 单图像素化 + 微动 ========== -->
   <div class="panel active" id="panel-single">
     <div class="controls">
       <div class="control-group">
@@ -254,7 +269,20 @@
     <div class="canvas-wrapper">
       <canvas id="singleCanvas"></canvas>
     </div>
+
+    <!-- 微动控制面板 -->
+    <div class="motion-controls">
+      <div class="control-group">
+        <label>微动强度</label>
+        <input type="range" id="singleMotion" min="0" max="100" value="30" step="5">
+        <span class="value" id="singleMotionVal">30</span>
+      </div>
+      <button class="action orange" onclick="toggleSingleMotion()">开始/停止微动</button>
+      <button class="action" onclick="downloadSingleMotion()">下载带微动图片</button>
+    </div>
+
     <p class="info">提示：精度越低，像素块越大、越抽象；精度越高，越接近原图。</p>
+    <p class="info" style="margin-top:8px;">拖动微动强度滑块 + 点击“开始/停止微动”即可让女孩轻轻摇摆、颤动</p>
   </div>
 
   <!-- ========== 双图像素溶解 ========== -->
@@ -335,6 +363,7 @@
   </div>
 
   <script>
+
     // ==================== 通用工具 ====================
     function loadImageFromFile(file) {
       return new Promise((resolve, reject) => {
@@ -373,13 +402,13 @@
           const i = (y * w + x) * 4;
           const a = data[i + 3] / 255;
           if (a < 0.01) continue;
-          ctx.fillStyle = `rgba(${data[i]},${data[i+1]},${data[i+2]},${a})`;
+          ctx.fillStyle = `rgba(\( {data[i]}, \){data[i+1]},\( {data[i+2]}, \){a})`;
           ctx.fillRect(x * scale, y * scale, scale, scale);
         }
       }
     }
 
-    // 确定性伪随机（0~1），基于整数坐标，保证同一像素每次结果相同
+    // 确定性伪随机（0\~1），基于整数坐标，保证同一像素每次结果相同
     function pixelThreshold(x, y, seed = 0) {
       let n = x * 374761393 + y * 668265263 + seed * 982451653;
       n = (n ^ (n >>> 13)) * 1274126177;
@@ -436,10 +465,90 @@
       drawPixelBlocks(singleCtx, imageData, scale);
     }
 
+    // ==================== 单图微动 ====================
+    let singleMotionTimer = null;
+    let singleMotionActive = false;
+    let singleMotionFrame = 0;
+    let originalSingleData = null;
+
+    function toggleSingleMotion() {
+      singleMotionActive = !singleMotionActive;
+      const motionVal = parseInt(document.getElementById('singleMotion').value);
+      
+      if (singleMotionActive) {
+        document.getElementById('singleMotionVal').textContent = motionVal;
+        originalSingleData = getPixelData(singleImg, morphW || 80, morphH || 80);
+        singleMotionFrame = 0;
+        singleMotionTimer = setInterval(() => {
+          if (singleMotionActive && singleImg) {
+            animateSinglePixel(motionVal);
+          }
+        }, 16); // \~60fps 流畅
+      } else {
+        clearInterval(singleMotionTimer);
+        singleMotionTimer = null;
+        if (singleImg) {
+          const imageData = getPixelData(singleImg, morphW || 80, morphH || 80);
+          singleCanvas.width = (morphW || 80) * parseInt(document.getElementById('singleScale').value);
+          singleCanvas.height = (morphH || 80) * parseInt(document.getElementById('singleScale').value);
+          drawPixelBlocks(singleCtx, imageData, parseInt(document.getElementById('singleScale').value));
+        }
+      }
+    }
+
+    function animateSinglePixel(motion) {
+      const w = morphW || 80;
+      const h = morphH || 80;
+      const scale = parseInt(document.getElementById('singleScale').value);
+      const mid = singleCtx.createImageData(w * scale, h * scale);
+
+      const s = originalSingleData.data;
+      const d = mid.data;
+
+      const shake = Math.floor(motion / 3) * Math.sin(singleMotionFrame * 0.3);
+      const bob = Math.floor(motion / 4) * Math.sin(singleMotionFrame * 0.15 + 2);
+      const skirtSwing = Math.floor(motion / 5) * Math.sin(singleMotionFrame * 0.4);
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          const idx = (y * scale * (w * scale) + x * scale) * 4;
+
+          // 头部轻摇（左右）
+          const headOffsetX = shake * Math.sin((x + y * 3) * 0.12);
+          // 身体轻颤（上下）
+          const bodyOffsetY = bob * Math.sin((x * 2 + y) * 0.08);
+          // 布料轻晃（裙子黑丝）
+          const skirtOffsetY = skirtSwing * Math.sin(x * 0.15 + y * 0.25);
+
+          const finalX = Math.max(0, Math.min(w - 1, x + Math.floor(headOffsetX)));
+          const finalY = Math.max(0, Math.min(h - 1, y + Math.floor(bodyOffsetY) + Math.floor(skirtOffsetY)));
+
+          const finalIdx = (finalY * w + finalX) * 4;
+
+          d[idx]     = s[finalIdx];
+          d[idx + 1] = s[finalIdx + 1];
+          d[idx + 2] = s[finalIdx + 2];
+          d[idx + 3] = s[finalIdx + 3];
+        }
+      }
+
+      drawPixelBlocks(singleCtx, mid, scale);
+      singleMotionFrame++;
+    }
+
     function downloadSingle() {
       if (!singleImg) return;
       const link = document.createElement('a');
       link.download = 'pixel-art.png';
+      link.href = singleCanvas.toDataURL('image/png');
+      link.click();
+    }
+
+    function downloadSingleMotion() {
+      if (!singleImg) return;
+      const link = document.createElement('a');
+      link.download = 'pixel-motion.png';
       link.href = singleCanvas.toDataURL('image/png');
       link.click();
     }
@@ -530,7 +639,7 @@
       drawInterpolated(0);
 
       updateMorphButtons(true);
-      document.getElementById('morphStatus').textContent = `已就绪：${morphW}×${morphH} 像素 · 可播放或录制`;
+      document.getElementById('morphStatus').textContent = `已就绪：\( {morphW}× \){morphH} 像素 · 可播放或录制`;
     }
 
     function drawSmallPreview(canvas, imageData) {
@@ -543,7 +652,7 @@
       drawPixelBlocks(ctx, imageData, scale);
     }
 
-    // t: 0~1
+    // t: 0\~1
     function drawInterpolated(t) {
       if (!startData || !endData) return;
       const scale = parseInt(document.getElementById('morphScale').value);
